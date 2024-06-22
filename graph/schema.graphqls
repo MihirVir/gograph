@@ -1,0 +1,51 @@
+type User {
+  id: ID!
+  username: String!
+  password: String!
+  playlists: [Playlist!]
+  musics: [Music!]
+}
+
+type Playlist {
+  id: ID!
+  playlistName: String!
+  musics: [Music!]!
+  author: User!
+}
+
+type Music {
+  id: ID!
+  artist: User!
+  len: String!
+  name: String!
+}
+
+type Query {
+  playlists: [Playlist!]!
+  playlist(id: ID!): Playlist!
+  musics: [Music!]!
+  music(id: ID!): Music!
+}
+
+type Mutation {
+  createUser(input: UserInputField!): User!
+  createPlaylist(input: PlaylistInputField!): Playlist!
+  createMusic(input: MusicInputField!): Music!
+}
+
+input UserInputField {
+  username: String!
+  password: String!
+}
+
+input PlaylistInputField {
+  playlistName: String!
+  author: ID!
+  musicIds: [ID!]!
+}
+
+input MusicInputField {
+  artist: ID!
+  len: String!
+  name: String!
+}
