@@ -8,6 +8,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"mihirgql/graph/helpers"
 	"mihirgql/graph/model"
 
 	"github.com/google/uuid"
@@ -16,12 +17,17 @@ import (
 // CreateUser is the resolver for the createUser field.
 func (r *mutationResolver) CreateUser(ctx context.Context, input model.UserInputField) (*model.User, error) {
 	userId := uuid.New()
+
+	isUser := helpers.GetUserByName(input.Username, r.users)
+	if isUser {
+		return nil, errors.New("user already exists")
+	}
+
 	user := model.User{
 		ID:       userId.String(),
 		Username: input.Username,
 		Password: input.Password,
 	}
-
 	r.users = append(r.users, &user)
 
 	return &user, nil
@@ -33,7 +39,7 @@ func (r *mutationResolver) CreatePlaylist(ctx context.Context, input model.Playl
 	musics := []*model.Music{}
 
 	for _, mId := range musics {
-		m, err := GetMusicById(mId.ID, r.musics)
+		m, err := helpers.GetMusicById(mId.ID, r.musics)
 		if err != nil {
 			return nil, err
 		}
@@ -41,7 +47,7 @@ func (r *mutationResolver) CreatePlaylist(ctx context.Context, input model.Playl
 		musics = append(musics, m)
 	}
 
-	user, err := GetUser(input.Author, r.users)
+	user, err := helpers.GetUser(input.Author, r.users)
 	if err != nil {
 		return nil, err
 	}
@@ -53,36 +59,35 @@ func (r *mutationResolver) CreatePlaylist(ctx context.Context, input model.Playl
 		Author:       user,
 	}
 
+	r.playlists = append(r.playlists, &playlist)
+
 	return &playlist, nil
-}
-
-func GetUser(u string, users []*model.User) (*model.User, error) {
-	for _, user := range users {
-		if user.ID == u {
-			return user, nil
-		}
-	}
-
-	return nil, errors.New("user not found error")
-}
-
-func GetMusicById(musicId string, musics []*model.Music) (*model.Music, error) {
-	for _, m := range musics {
-		if m.ID == musicId {
-			return m, nil
-		}
-	}
-	return nil, errors.New("music not found")
 }
 
 // CreateMusic is the resolver for the createMusic field.
 func (r *mutationResolver) CreateMusic(ctx context.Context, input model.MusicInputField) (*model.Music, error) {
-	panic(fmt.Errorf("not implemented: CreateMusic - createMusic"))
+	musicId := uuid.New()
+
+	user, err := helpers.GetUser(input.Artist, r.users)
+	if err != nil {
+		return nil, errors.New("artist/user doesn't exists")
+	}
+
+	music := model.Music{
+		ID:     musicId.String(),
+		Name:   input.Name,
+		Len:    input.Len,
+		Artist: user,
+	}
+
+	r.musics = append(r.musics, &music)
+
+	return &music, nil
 }
 
 // Playlists is the resolver for the playlists field.
 func (r *queryResolver) Playlists(ctx context.Context) ([]*model.Playlist, error) {
-	panic(fmt.Errorf("not implemented: Playlists - playlists"))
+	return r.playlists, nil
 }
 
 // Playlist is the resolver for the playlist field.
@@ -92,7 +97,7 @@ func (r *queryResolver) Playlist(ctx context.Context, id string) (*model.Playlis
 
 // Musics is the resolver for the musics field.
 func (r *queryResolver) Musics(ctx context.Context) ([]*model.Music, error) {
-	panic(fmt.Errorf("not implemented: Musics - musics"))
+	return r.musics, nil
 }
 
 // Music is the resolver for the music field.
