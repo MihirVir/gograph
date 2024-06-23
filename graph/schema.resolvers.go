@@ -38,16 +38,18 @@ func (r *mutationResolver) CreatePlaylist(ctx context.Context, input model.Playl
 	playlistId := uuid.New()
 	musics := []*model.Music{}
 
-	for _, mId := range musics {
-		m, err := helpers.GetMusicById(mId.ID, r.musics)
+	for _, mId := range input.MusicIds {
+		m, err := helpers.FindById(mId, r.musics)
 		if err != nil {
 			return nil, err
 		}
+		fmt.Println(m)
+		fmt.Println(mId)
 
 		musics = append(musics, m)
 	}
 
-	user, err := helpers.GetUser(input.Author, r.users)
+	user, err := helpers.FindById(input.Author, r.users)
 	if err != nil {
 		return nil, err
 	}
@@ -68,7 +70,7 @@ func (r *mutationResolver) CreatePlaylist(ctx context.Context, input model.Playl
 func (r *mutationResolver) CreateMusic(ctx context.Context, input model.MusicInputField) (*model.Music, error) {
 	musicId := uuid.New()
 
-	user, err := helpers.GetUser(input.Artist, r.users)
+	user, err := helpers.FindById(input.Artist, r.users)
 	if err != nil {
 		return nil, errors.New("artist/user doesn't exists")
 	}

@@ -3,16 +3,11 @@ package helpers
 import (
 	"errors"
 	"mihirgql/graph/model"
+	"reflect"
 )
 
-func GetUser(u string, users []*model.User) (*model.User, error) {
-	for _, user := range users {
-		if user.ID == u {
-			return user, nil
-		}
-	}
-
-	return nil, errors.New("user not found error")
+type Identifier interface {
+	*model.Music | *model.Playlist | *model.User
 }
 
 func GetUserByName(username string, users []*model.User) bool {
@@ -31,4 +26,18 @@ func GetMusicById(musicId string, musics []*model.Music) (*model.Music, error) {
 		}
 	}
 	return nil, errors.New("music not found")
+}
+
+func getId[T Identifier](item T) string {
+	v := reflect.ValueOf(item).Elem()
+	return v.FieldByName("ID").String()
+}
+
+func FindById[T Identifier](id string, slices []T) (T, error) {
+	for _, item := range slices {
+		if getId(item) == id {
+			return item, nil
+		}
+	}
+	return nil, errors.New("item not found")
 }
