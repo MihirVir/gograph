@@ -94,7 +94,12 @@ func (r *queryResolver) Playlists(ctx context.Context) ([]*model.Playlist, error
 
 // Playlist is the resolver for the playlist field.
 func (r *queryResolver) Playlist(ctx context.Context, id string) (*model.Playlist, error) {
-	panic(fmt.Errorf("not implemented: Playlist - playlist"))
+	playlist, err := helpers.FindById(id, r.playlists)
+	if err != nil {
+		return nil, errors.New("error finding the playlist")
+	}
+
+	return playlist, nil
 }
 
 // Musics is the resolver for the musics field.
@@ -104,7 +109,12 @@ func (r *queryResolver) Musics(ctx context.Context) ([]*model.Music, error) {
 
 // Music is the resolver for the music field.
 func (r *queryResolver) Music(ctx context.Context, id string) (*model.Music, error) {
-	panic(fmt.Errorf("not implemented: Music - music"))
+	music, err := helpers.FindById(id, r.musics)
+	if err != nil {
+		return nil, errors.New("error finding the song")
+	}
+
+	return music, nil
 }
 
 // Mutation returns MutationResolver implementation.
